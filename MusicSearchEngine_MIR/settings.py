@@ -147,7 +147,8 @@ REST_FRAMEWORK = {
 
 MUSIC_BRAINS = {
     'JSON_FILE_URL': 'https://mirrors.dotsrc.org/MusicBrainz/data/json-dumps/20210814-001002/artist.tar.xz',
-    'ARTIST_FILE_PATH': '/mbdump/artist'
+    'ARTIST_FILE_PATH': '/mbdump/artist',
+    'ARTIS_TOKEN_PATH': './mir_sys/files/artist_tokens'
 }
 
 
