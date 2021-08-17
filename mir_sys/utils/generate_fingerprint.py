@@ -105,3 +105,14 @@ class FingerprintGenerator:
         """
         numbers = [int("".join([str(each) for each in vector[i * 6: (i + 1) * 6]]), 2) for i in range(4)]
         return "".join([NumBase64.encode_to_base64(num) for num in numbers])
+
+    @classmethod
+    def generate_fingerprint(cls, dir_or_samples) -> list:
+        """
+        function management for generate the fingerprint
+        :param dir_or_samples: it can be a path of audio file or samples
+        :return: a list of fingerprint for each diff sec
+        """
+        samples = cls.get_samples_of_audio(dir_or_samples) if isinstance(dir_or_samples, str) else dir_or_samples
+        split_chroma_feature = cls.split_features(cls.get_chroma_feature(samples))
+        return cls.get_fingerprints(split_chroma_feature)
