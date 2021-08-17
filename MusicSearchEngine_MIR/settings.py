@@ -151,4 +151,10 @@ MUSIC_BRAINS = {
     'ARTIS_TOKEN_PATH': './mir_sys/files/artist_tokens'
 }
 
+FINGERPRINT_MODEL = {
+    "MODEL_PATH": "./mir_sys/files/encoder_model.json",
+    "WEIGHTS_PATH": "./mir_sys/files/encoder_model.h5"
+}
+
+
 

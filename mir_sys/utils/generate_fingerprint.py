@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 
-MUSICBRAINZ_CONF = getattr(settings, 'MUSIC_BRAINS', {})
+MODEL_CONFIGS = getattr(settings, 'FINGERPRINT_MODEL', {})
 
 
 def binary_activation(x):
@@ -31,12 +31,12 @@ class FingerprintGenerator:
     MAX_FRAME_NUM = max([FRAME_SEC_INDEXES[i + 1] - FRAME_SEC_INDEXES[i] for i in range(len(FRAME_SEC_INDEXES) - 1)])
 
     # load model
-    json_file = open('./drive/MyDrive/fingerprint_model/encoder_model.json', 'r')
+    json_file = open(MODEL_CONFIGS['MODEL_PATH'], 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     MODEL = model_from_json(loaded_model_json, {'binary_activation': Activation(binary_activation)})
     # load weights into new model
-    MODEL.load_weights("./drive/MyDrive/fingerprint_model/encoder_model.h5")
+    MODEL.load_weights(MODEL_CONFIGS['WEIGHTS_PATH'])
 
     @classmethod
     def get_samples_of_audio(cls, file_path: str, remove_file=True) -> np.array:
