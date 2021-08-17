@@ -7,6 +7,8 @@ import librosa
 import os
 import numpy as np
 
+from mir_sys.utils.generate_fingerprint import NumBase64
+
 
 MODEL_CONFIGS = getattr(settings, 'FINGERPRINT_MODEL', {})
 
@@ -84,5 +86,22 @@ class FingerprintGenerator:
         split_feature = np.split(feature, [each for each in cls.FRAME_SEC_INDEXES if each < len(feature)])
         return np.array([cls.add_padding(each) for each in split_feature])
 
+    @classmethod
+    def get_fingerprints(cls, features: np.ndarray) -> list:
+        """
+        get fingerprints from model.predict
+        :param features:
+        :return:
+        """
+        fingerprints = cls.MODEL.predict(features)
+        return [cls.vector_to_base64(fingerprint) for fingerprint in fingerprints]
 
-
+    @classmethod
+    def vector_to_base64(cls, vector: np.array) -> str:
+        """
+        convert the result of model prediction to base64 encode
+        :param vector: an array of 0 and 1
+        :return: base64 encode
+        """
+        numbers = [int("".join([str(each) for each in vector[i * 6: (i + 1) * 6]]), 2) for i in range(4)]
+        return "".join([NumBase64.encode_to_base64(num) for num in numbers])
