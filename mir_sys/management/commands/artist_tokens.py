@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 except:
                     pass
         file.close()
-        return artists_num, set(artists.split(" "))
+        return artists_num, set(artists.lower().split(" "))
 
     def delete_the_folder(self):
         try:
