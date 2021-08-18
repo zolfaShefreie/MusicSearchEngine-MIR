@@ -5,6 +5,8 @@ import tarfile
 import json
 import shutil
 
+from mir_sys.utils.util_classes import CDict
+
 
 MUSICBRAINZ_CONF = getattr(settings, 'MUSIC_BRAINS', {})
 
@@ -78,6 +80,7 @@ class Command(BaseCommand):
         save token files
         :param artists: list of tokens
         """
-        file = open(MUSICBRAINZ_CONF['ARTIS_TOKEN_PATH'], "a")
-        file.write(str(artists))
-        file.close()
+        tokens = CDict(MUSICBRAINZ_CONF['ARTIS_TOKEN_PATH'])
+        for each in artists:
+            tokens.update({each: False})
+        tokens.save()

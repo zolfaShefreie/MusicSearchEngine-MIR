@@ -3,9 +3,11 @@ import os
 
 
 class CDict:
+    MAX_CHANGES = 20000
 
     def __init__(self, path):
         self.path = path
+        self.__change_num = 0
         self.__dict_struct = dict()
         self._load()
 
@@ -15,17 +17,21 @@ class CDict:
             self.__dict_struct = ast.literal_eval(file.read())
             file.close()
 
-    def _save(self):
+    def save(self):
         file = open(self.path, 'w')
         file.write(str(self.__dict_struct))
         file.close()
+        print("saved")
 
     def ___getitem__(self, key):
         return self.__dict_struct[key]
 
     def update(self, new_dict: dict):
         self.__dict_struct.update(new_dict)
-        self._save()
+        self.__change_num += 1
+        if self.__change_num >= self.MAX_CHANGES:
+            self.__change_num = 0
+            self.save()
 
     def __iter__(self):
         self.count = 0
