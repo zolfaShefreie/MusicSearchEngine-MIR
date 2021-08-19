@@ -23,7 +23,7 @@ class CDict:
         file.close()
         print("saved")
 
-    def ___getitem__(self, key):
+    def __getitem__(self, key):
         return self.__dict_struct[key]
 
     def update(self, new_dict: dict):

@@ -161,5 +161,4 @@ ELASTICSEARCH_CONFiGS = {
     "PORT": "",
 }
 
-
-
+CHECK_ARTISTS_YEAR = 1
