@@ -156,5 +156,10 @@ FINGERPRINT_MODEL = {
     "WEIGHTS_PATH": "./mir_sys/files/encoder_model.h5"
 }
 
+ELASTICSEARCH_CONFiGS = {
+    "HOST": "",
+    "PORT": "",
+}
+
 
 
