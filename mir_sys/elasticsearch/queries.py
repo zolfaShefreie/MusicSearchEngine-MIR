@@ -1,4 +1,4 @@
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, helpers
 
 
 class Queries:
@@ -23,3 +23,28 @@ class Queries:
         """
         results = cls.search_ids(ids, index_name)
         return [each['_id'] for each in results]
+
+    @classmethod
+    def create_multi_objs(cls, objs: list, index_name: str):
+        """
+        :param objs: a list of dictionaries that have below format
+        {
+            "id": "id",
+            "data": {
+                        "property1": value,
+                        "property2": value,
+                        ...
+                    }
+        }
+        :param index_name:
+        :return:
+        """
+        body = [
+            {
+                '_index': index_name,
+                '_id': each['id'],
+                '_source': each['data'],
+            }
+            for each in objs
+        ]
+        result = helpers.bulk(cls.ES_CONN, body, raise_on_error=False)
