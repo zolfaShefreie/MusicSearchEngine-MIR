@@ -128,3 +128,23 @@ class Queries:
         }
         results = cls.ES_CONN.search(index="songs", body=body)['hits']['hits']
         return [each['_id'] for each in results]
+
+    @classmethod
+    def set_seen_songs(cls, song_ids: list):
+        """
+        set seen = true for many ids
+        :param song_ids:
+        :return:
+        """
+        body = {
+            "script": {
+                "source": "ctx._source.seen = true",
+                "lang": "painless"
+            },
+            "query": {
+                "ids": {
+                    "values": song_ids
+                }
+            }
+        }
+        cls.ES_CONN.update_by_query(index="songs", body=body)

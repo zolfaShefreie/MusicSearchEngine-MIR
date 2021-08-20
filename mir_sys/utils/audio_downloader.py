@@ -3,7 +3,7 @@ import time
 from django.conf import settings
 
 
-DOWNLOAD_PATH = getattr(settings, 'DOWNLOAD_PATH', 1)
+DOWNLOAD_PATH = getattr(settings, 'DOWNLOAD_PATH')
 
 
 class Downloader:
