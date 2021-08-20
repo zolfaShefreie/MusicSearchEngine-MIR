@@ -4,6 +4,8 @@ from elasticsearch import Elasticsearch, helpers
 class Queries:
     ES_CONN = Elasticsearch()
 
+    # methods for all indices
+
     @classmethod
     def search_ids(cls, ids: list, index_name: str) -> list:
         """
@@ -48,3 +50,26 @@ class Queries:
             for each in objs
         ]
         result = helpers.bulk(cls.ES_CONN, body, raise_on_error=False)
+
+    # methods for specific method
+
+    @classmethod
+    def get_expire_artists(cls, less_date: str, limit=20) -> list:
+        """
+        get the artist that have less last_check and return id of them
+        :param less_date: less than which date
+        :param limit: max number of results
+        :return: a list of artist id
+        """
+        body = {
+            "from": 0, "size": limit,
+            "query": {
+                "range": {
+                    "last_check": {
+                        "lte": less_date
+                    }
+                }
+            }
+        }
+        results = cls.ES_CONN.search(index="artists", body=body)['hits']['hits']
+        return [each['_id'] for each in results]
