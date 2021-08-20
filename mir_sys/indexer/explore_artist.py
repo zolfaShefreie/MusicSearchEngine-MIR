@@ -10,7 +10,7 @@ PATH = getattr(settings, 'MUSIC_BRAINS', {})['ARTIS_TOKEN_PATH']
 EXPIRE_YEAR = getattr(settings, 'CHECK_ARTISTS_YEAR', 1)
 
 
-class ARTIST_EXPLOREE:
+class ArtistExplorer:
     ytmusic = YTMusic()
     queries = Queries()
 
@@ -42,11 +42,14 @@ class ARTIST_EXPLOREE:
             if each not in exist_objs:
                 objs.append({"id": each,
                              "data": {"last_check": (datetime.datetime.now() -
-                                                     datetime.timedelta(days=365)).date().strftime("%Y-%m-%d")}})
+                                                     datetime.timedelta(days=EXPIRE_YEAR*365)).date().strftime("%Y-%m-%d")}})
         cls.queries.create_multi_objs(objs, "artists")
 
     @classmethod
     def run(cls):
+        """
+        this method is a management method for process of search tokens and add artists to database
+        """
         tokens = CDict(PATH)
         for each in tokens:
             if not tokens[each]:
