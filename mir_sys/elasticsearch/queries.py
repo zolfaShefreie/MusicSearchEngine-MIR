@@ -148,3 +148,27 @@ class Queries:
             }
         }
         cls.ES_CONN.update_by_query(index="songs", body=body)
+
+    @classmethod
+    def update_song_list(cls, fingerprints: list, song_id: str):
+        """
+        update song list of fingerprint objs and add song_id to them
+        :param fingerprints: a list of unique fingerprints
+        :param song_id:
+        :return:
+        """
+
+        body = {
+            "script": {
+                "inline": "ctx._source.songs.add(params.song_id)",
+                "params": {
+                    "song_id": song_id
+                }
+            },
+            "query": {
+                "ids": {
+                    "values": fingerprints
+                }
+            }
+        }
+        cls.ES_CONN.update_by_query(index="fingerprints", body=body)
