@@ -83,3 +83,48 @@ class Queries:
         }
         results = cls.ES_CONN.search(index="artists", body=body)['hits']['hits']
         return [each['_id'] for each in results]
+
+    @classmethod
+    def get_unseen_songs(cls, limit=20) -> list:
+        """
+        get the songs with seen = false
+        :param limit: max number of results
+        :return: a list of song id
+        """
+        body = {
+            "from": 0, "size": limit,
+            "query": {
+                "term": {
+                    "seen": False
+                }
+            }
+        }
+        results = cls.ES_CONN.search(index="songs", body=body)['hits']['hits']
+        return [each['_id'] for each in results]
+
+    @classmethod
+    def get_no_feature_songs(cls, limit=20) -> list:
+        """
+        get the songs with fingerprint = "" and seen = True
+        :param limit: max number of results
+        :return: a list of song id
+        """
+        body = {
+            "from": 0, "size": limit,
+            "query": {
+                "bool": {
+                    "must": {
+                        "term": {
+                            "seen": True
+                        }
+                    },
+                    "filter": {
+                        "term": {
+                            "fingerprint": ""
+                        }
+                    }
+                }
+            }
+        }
+        results = cls.ES_CONN.search(index="songs", body=body)['hits']['hits']
+        return [each['_id'] for each in results]
