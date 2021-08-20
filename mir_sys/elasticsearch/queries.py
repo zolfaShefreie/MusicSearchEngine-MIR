@@ -51,6 +51,16 @@ class Queries:
         ]
         result = helpers.bulk(cls.ES_CONN, body, raise_on_error=False)
 
+    @classmethod
+    def update_obj(cls, obj_id: str, index_name: str, obj: dict):
+        """
+        :param obj_id:
+        :param index_name:
+        :param obj:
+        :return:
+        """
+        cls.ES_CONN.update(index=index_name, id=obj_id, body={'doc': obj})
+
     # methods for specific method
 
     @classmethod
