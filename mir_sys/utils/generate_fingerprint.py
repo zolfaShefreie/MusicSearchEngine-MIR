@@ -7,7 +7,7 @@ import librosa
 import os
 import numpy as np
 
-from mir_sys.utils.generate_fingerprint import NumBase64
+from mir_sys.utils.custom_base64 import NumBase64
 
 
 MODEL_CONFIGS = getattr(settings, 'FINGERPRINT_MODEL', {})

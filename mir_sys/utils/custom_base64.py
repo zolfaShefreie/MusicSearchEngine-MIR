@@ -28,3 +28,20 @@ class NumBase64:
         :return:
         """
         return cls.base64_char2num[encoded_str]
+
+    @classmethod
+    def encode_binary_to_base64(cls, bin_num: str) -> str:
+        """
+        :param bin_num:
+        :return:
+        """
+        num_list = [bin_num[i*6: (i+1)*6] for i in range(int(len(bin_num)/6)+1)]
+        return "".join([cls.encode_to_base64(int(num, 2)) for num in num_list if num])
+
+    @classmethod
+    def decode_to_binary(cls, encoded_str: str) -> str:
+        """
+        :param encoded_str:
+        :return:
+        """
+        return "".join([bin(cls.decode_from_base64(each)).rstrip("0b") for each in encoded_str])
