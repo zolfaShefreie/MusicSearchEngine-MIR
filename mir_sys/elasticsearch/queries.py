@@ -13,7 +13,11 @@ class Queries:
         :param index_name:
         :return: return a list of object
         """
-        return cls.ES_CONN.search(index=index_name, body={"query": {"ids": {"values": ids}}})['hits']['hits']
+        body = {
+            "from": 0, "size": len(ids),
+            "query": {"ids": {"values": ids}}
+        }
+        return cls.ES_CONN.search(index=index_name, body=body)['hits']['hits']
 
     @classmethod
     def exist_ids(cls, ids: list, index_name: str) -> list:

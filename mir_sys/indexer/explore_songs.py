@@ -2,6 +2,7 @@ from ytmusicapi import YTMusic
 from django.conf import settings
 import datetime
 
+
 from mir_sys.elasticsearch.queries import Queries
 
 
@@ -25,13 +26,14 @@ class SongExplorer:
         """
         return_list = list()
         result = cls.ytmusic.get_artist(artist_id)
-
-        return_list.extend([each['videoId']
-                            for category in [result['songs']['results'], result['videos']['results']]
-                            for each in category])
-        albums = [each['browseId']
-                  for category in [result['singles']['results'], result['albums']['results']]
-                  for each in category]
+        return_list.extend([each.get('videoId', None)
+                            for category in [result.get('songs', {}).get('results', []),
+                                             result.get('videos', {}).get('results', [])]
+                            for each in category if each.get('videoId', None)])
+        albums = [each.get('browseId', None)
+                  for category in [result.get('singles', {}).get('results', []),
+                                   result.get('albums', {}).get('results', [])]
+                  for each in category if each.get('browseId', None)]
         return_list.extend([each for album in albums for each in cls.get_album_videos(album)])
         return list(set(return_list))
 
@@ -41,8 +43,8 @@ class SongExplorer:
         :param album_id:
         :return:
         """
-        results = cls.ytmusic.get_album(album_id)['tracks']
-        return list(set([each['videoId'] for each in results]))
+        results = cls.ytmusic.get_album(album_id).get('results', [])
+        return list(set([each.get('videoId', None) for each in results if each.get('videoId', None)]))
 
     @classmethod
     def create_song_objs(cls, ids: list, artist_id: str):
@@ -74,5 +76,5 @@ class SongExplorer:
     def run(cls):
         artists = cls.queries.get_expire_artists(cls.get_date_year_ago(), cls.LIMITS)
         for each in artists:
-            cls.create_song_objs(ids=cls.get_artist_videos(each))
+            cls.create_song_objs(ids=cls.get_artist_videos(each), artist_id=each)
             cls.update_artist_last_check(each)
