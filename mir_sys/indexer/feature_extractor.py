@@ -26,9 +26,10 @@ class FeatureExtractor:
         :param song_id:
         :return:
         """
+        complete_fingerprints = "".join(fingerprints)
         unique_fingerprints = set(fingerprints)
         cls.queries.update_obj(obj_id=song_id, index_name="songs",
-                               obj={'fingerprint': "".join(fingerprints)})
+                               obj={'fingerprint': complete_fingerprints})
         cls.queries.update_song_list(list(unique_fingerprints), song_id)
 
     @classmethod

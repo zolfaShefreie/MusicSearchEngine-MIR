@@ -18,6 +18,9 @@ def binary_activation(x):
 
 
 get_custom_objects().update({'binary_activation': Activation(binary_activation)})
+FRAME_SEC_INDEXES = [librosa.time_to_frames(i, 16000, n_fft=int(16000 * 0.2), hop_length=int(16000 * 0.1))
+                     for i in range(1, 10000, 1)]
+MAX_FRAME_NUM = max([FRAME_SEC_INDEXES[i + 1] - FRAME_SEC_INDEXES[i] for i in range(len(FRAME_SEC_INDEXES) - 1)])
 
 
 class FingerprintGenerator:
@@ -27,10 +30,9 @@ class FingerprintGenerator:
     DIFF = 1
     ALLOW_DURATION = 10000
     SPECIAL_VALUE = -10
-    FRAME_SEC_INDEXES = [librosa.time_to_frames(i, SAMPLE_RATE, n_fft=N_FFT, hop_length=HOP_LENGTH)
-                         for i in range(1, ALLOW_DURATION, DIFF)]
+    FRAME_SEC_INDEXES = FRAME_SEC_INDEXES
 
-    MAX_FRAME_NUM = max([FRAME_SEC_INDEXES[i + 1] - FRAME_SEC_INDEXES[i] for i in range(len(FRAME_SEC_INDEXES) - 1)])
+    MAX_FRAME_NUM = MAX_FRAME_NUM
 
     # load model
     json_file = open(MODEL_CONFIGS['MODEL_PATH'], 'r')
@@ -41,7 +43,7 @@ class FingerprintGenerator:
     MODEL.load_weights(MODEL_CONFIGS['WEIGHTS_PATH'])
 
     @classmethod
-    def get_samples_of_audio(cls, file_path: str, remove_file=True) -> np.array:
+    def get_samples_of_audio(cls, file_path: str, remove_file=False) -> np.array:
         """
         get samples from audio file(signals)
         :param file_path: the path of audio file
@@ -64,7 +66,7 @@ class FingerprintGenerator:
         return librosa.feature.chroma_stft(samples,
                                            sr=cls.SAMPLE_RATE,
                                            n_fft=cls.N_FFT,
-                                           hop_length=cls.HOP_LENGTH)
+                                           hop_length=cls.HOP_LENGTH).transpose()
 
     @classmethod
     def add_padding(cls, feature: np.array) -> np.array:
@@ -103,7 +105,7 @@ class FingerprintGenerator:
         :param vector: an array of 0 and 1
         :return: base64 encode
         """
-        numbers = [int("".join([str(each) for each in vector[i * 6: (i + 1) * 6]]), 2) for i in range(4)]
+        numbers = [int("".join([str(int(each)) for each in vector[i * 6: (i + 1) * 6]]), 2) for i in range(4)]
         return "".join([NumBase64.encode_to_base64(num) for num in numbers])
 
     @classmethod
