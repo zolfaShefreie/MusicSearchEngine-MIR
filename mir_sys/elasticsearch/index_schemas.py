@@ -15,8 +15,7 @@ FINGERPRINT_INDEX = {
     "schema": {
         "mappings": {
             "properties": {
-                "rel_fingerprint": {"type": "keyword", "store": True},
-                "songs": {"type": "keyword", "store": True}
+                "songs": {"type": "keyword"}
             }
         }
     },
@@ -27,7 +26,7 @@ SONG_INDEX = {
     "schema": {
         "mappings": {
             "properties": {
-                "artist": {"type": "keyword", "store": True},
+                "artist": {"type": "keyword"},
                 "seen": {"type": "boolean"},
                 "fingerprint": {"type": "wildcard"}
             }
