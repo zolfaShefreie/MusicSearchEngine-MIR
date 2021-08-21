@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 from multiprocessing import Pool
-import itertools
 
 from mir_sys.elasticsearch.queries import Queries
 from mir_sys.utils.custom_base64 import NumBase64
@@ -12,7 +11,7 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def handle(self, *args, **kwargs):
-        args = [(i*(2**12), (i+1)*(2**12)) for i in range((2**12)-1)]
+        args = [(i*(2**12), (i+1)*(2**12)) for i in range((2**12))]
         pool = Pool(10)
         pool.starmap(self.run_block, args)
         pool.close()
