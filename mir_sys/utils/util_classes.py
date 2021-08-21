@@ -13,12 +13,12 @@ class CDict:
 
     def _load(self):
         if os.path.exists(self.path):
-            file = open(self.path, 'r')
+            file = open(self.path, 'r', encoding="utf-8")
             self.__dict_struct = ast.literal_eval(file.read())
             file.close()
 
     def save(self):
-        file = open(self.path, 'w')
+        file = open(self.path, 'w', encoding="utf-8")
         file.write(str(self.__dict_struct))
         file.close()
         print("saved")

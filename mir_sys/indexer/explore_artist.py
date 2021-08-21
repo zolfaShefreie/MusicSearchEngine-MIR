@@ -51,9 +51,10 @@ class ArtistExplorer:
         this method is a management method for process of search tokens and add artists to database
         """
         tokens = CDict(PATH)
-        for each in tokens:
+        for each in list(tokens.keys()):
             if not tokens[each]:
                 artist_ids = cls.search_and_get_ids("each")
                 if artist_ids:
                     cls.create_artist_objs(artist_ids)
                 tokens.update({each: True})
+        tokens.save()
