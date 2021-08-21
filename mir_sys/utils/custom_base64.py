@@ -44,4 +44,4 @@ class NumBase64:
         :param encoded_str:
         :return:
         """
-        return "".join([bin(cls.decode_from_base64(each)).rstrip("0b") for each in encoded_str])
+        return "".join([bin(cls.decode_from_base64(each)).lstrip("0b") for each in encoded_str])

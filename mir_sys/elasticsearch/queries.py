@@ -27,7 +27,7 @@ class Queries:
         return [each['_id'] for each in results]
 
     @classmethod
-    def create_multi_objs(cls, objs: list, index_name: str):
+    def create_multi_objs(cls, objs: list, index_name: str, timeout=10):
         """
         :param objs: a list of dictionaries that have below format
         {
@@ -39,6 +39,7 @@ class Queries:
                     }
         }
         :param index_name:
+        :param timeout
         :return:
         """
         body = [
@@ -49,7 +50,7 @@ class Queries:
             }
             for each in objs
         ]
-        result = helpers.bulk(cls.ES_CONN, body, raise_on_error=False)
+        result = helpers.bulk(cls.ES_CONN, body, raise_on_error=False, request_timeout=timeout)
 
     @classmethod
     def update_obj(cls, obj_id: str, index_name: str, obj: dict):
