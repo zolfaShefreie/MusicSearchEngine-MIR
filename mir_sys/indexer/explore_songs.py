@@ -74,7 +74,11 @@ class SongExplorer:
 
     @classmethod
     def run(cls):
+        """
+        :return: length of elements that function work on them
+        """
         artists = cls.queries.get_expire_artists(cls.get_date_year_ago(), cls.LIMITS)
         for each in artists:
             cls.create_song_objs(ids=cls.get_artist_videos(each), artist_id=each)
             cls.update_artist_last_check(each)
+        return len(artists)
