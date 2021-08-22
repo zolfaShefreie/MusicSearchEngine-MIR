@@ -119,19 +119,21 @@ class Queries:
             "from": 0, "size": limit,
             "query": {
                 "bool": {
-                    "must": {
-                        "range": {
-                            "effort": {
-                                "lte": max_search,
-                                "gte": 1
+                    "must": [
+                        {
+                            "range": {
+                                "effort": {
+                                    "lte": max_search,
+                                    "gte": 1
+                                }
+                            }
+                        },
+                        {
+                            "regexp": {
+                                "fingerprint": ".{0}"
                             }
                         }
-                    },
-                    "filter": {
-                        "term": {
-                            "fingerprint": ""
-                        }
-                    }
+                    ]
                 }
             }
         }
