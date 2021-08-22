@@ -9,15 +9,15 @@ class FeatureExtractor:
     queries = Queries()
 
     @classmethod
-    def get_ids(cls) -> (list, int):
+    def get_ids(cls) -> list:
         """
         check for songs that should download
         :return: a list of ids and seen status
         """
         ids = cls.queries.get_unseen_songs()
         if not ids:
-            return cls.queries.get_no_feature_songs(), True
-        return ids, False
+            return cls.queries.get_no_feature_songs()
+        return ids
 
     @classmethod
     def save_fingerprint(cls, song_id: str, fingerprints: list):
@@ -34,9 +34,8 @@ class FeatureExtractor:
 
     @classmethod
     def run(cls):
-        ids, seen = cls.get_ids()
-        if not seen:
-            cls.queries.set_seen_songs(ids)
+        ids = cls.get_ids()
+        cls.queries.increase_effort_song(ids)
         Downloader.download_manager(ids)
         for song_id in ids:
             path = f"{DOWNLOAD_PATH}{song_id}.wav"

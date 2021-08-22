@@ -100,7 +100,7 @@ class Queries:
             "from": 0, "size": limit,
             "query": {
                 "term": {
-                    "seen": False
+                    "effort": 0
                 }
             }
         }
@@ -108,10 +108,11 @@ class Queries:
         return [each['_id'] for each in results]
 
     @classmethod
-    def get_no_feature_songs(cls, limit=20) -> list:
+    def get_no_feature_songs(cls, limit=20, max_search=5) -> list:
         """
         get the songs with fingerprint = "" and seen = True
         :param limit: max number of results
+        :param max_search:
         :return: a list of song id
         """
         body = {
@@ -119,8 +120,11 @@ class Queries:
             "query": {
                 "bool": {
                     "must": {
-                        "term": {
-                            "seen": True
+                        "range": {
+                            "effort": {
+                                "lte": max_search,
+                                "gte": 1
+                            }
                         }
                     },
                     "filter": {
@@ -135,15 +139,15 @@ class Queries:
         return [each['_id'] for each in results]
 
     @classmethod
-    def set_seen_songs(cls, song_ids: list):
+    def increase_effort_song(cls, song_ids: list):
         """
-        set seen = true for many ids
+        set effort += 1 for many ids
         :param song_ids:
         :return:
         """
         body = {
             "script": {
-                "source": "ctx._source.seen = true",
+                "script": "ctx._source.effort += 1",
                 "lang": "painless"
             },
             "query": {

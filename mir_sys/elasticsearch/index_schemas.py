@@ -27,7 +27,7 @@ SONG_INDEX = {
         "mappings": {
             "properties": {
                 "artist": {"type": "keyword"},
-                "seen": {"type": "boolean"},
+                "effort": {"type": "integer"},
                 "fingerprint": {"type": "wildcard"}
             }
         }

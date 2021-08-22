@@ -59,7 +59,7 @@ class SongExplorer:
         for each in ids:
             if each not in exist_objs:
                 objs.append({"id": each,
-                             "data": {"artist": artist_id, "seen": False, "fingerprint": ""}})
+                             "data": {"artist": artist_id, "effort": 0, "fingerprint": ""}})
         cls.queries.create_multi_objs(objs, "songs")
 
     @classmethod
