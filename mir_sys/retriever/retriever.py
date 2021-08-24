@@ -116,13 +116,17 @@ class Retriever:
         regex = r"(.{4})*("
         for each in range_dict:
             if len(range_dict[each]) == 2:
-                regex += r"((.{}){}{}(.{}){}))|".format(str({4}), range_dict[0], fingerprint_regex_dict[each], str({4}),
-                                                        range_dict[1])
+                regex += r"(.{}){}{}(.{}){}|".format(str({4}), str({range_dict[0]}), fingerprint_regex_dict[each],
+                                                     str({4}),
+                                                     str({range_dict[1]}))
             elif len(range_dict[each]) == 4:
-                regex += r"((.{}){}{}(.{}){}))|" .format(str({4}), fingerprint_regex_dict[each],
-                                                         "{" + "{}, {}".format(range_dict[0], range_dict[1]) + "}",
-                                                         str({4}),
-                                                         "{" + "{}, {}".format(range_dict[2], range_dict[3]) + "}")
+                regex += r"(.{}){}{}(.{}){}|" .format(str({4}),
+                                                      "{" + "{},{}".format(range_dict[0], range_dict[1]) + "}",
+                                                      fingerprint_regex_dict[each],
+                                                      str({4}),
+                                                      "{" + "{},{}".format(range_dict[2], range_dict[3]) + "}")
+        regex.rstrip("|")
+        regex += r")"
         return regex
 
     def search_in_songs(self, songs: list):
