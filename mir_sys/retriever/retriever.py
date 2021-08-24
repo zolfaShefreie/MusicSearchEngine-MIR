@@ -1,7 +1,9 @@
+from collections import Counter
+import itertools
+
 from mir_sys.utils.generate_fingerprint import FingerprintGenerator
 from mir_sys.utils.custom_base64 import NumBase64
 from mir_sys.elasticsearch.queries import Queries
-import itertools
 
 MAX_BIT = 24
 
@@ -9,6 +11,8 @@ MAX_BIT = 24
 class Retriever:
     CHANGE_INDEX_LIST = [x for x in itertools.combinations(range(MAX_BIT), 1)] + \
                         [x for x in itertools.combinations(range(MAX_BIT), 2)]
+
+    MAX_NUM_BLOCK = 5
 
     def __init__(self):
         self.fingerprints = None
@@ -55,3 +59,47 @@ class Retriever:
             rel_fingerprints = self.create_rel_fingerprints(fingerprint)
             songs = self.get_fingerprint_songs(fingerprint, rel_fingerprints)
             self.query_hash_table[fingerprint] = {"rels": rel_fingerprints, "songs": songs}
+
+    def make_block_search(self) -> list:
+        """
+        set score for songs based on repeat in fingerprint list and then block them
+        :return: block list
+        """
+        songs = [song for fingerprint in self.query_hash_table
+                 for song in self.query_hash_table[fingerprint]['songs']]
+        song_score = dict(Counter(songs))
+
+        # initial block list
+        blocks = [list() for i in range(self.MAX_NUM_BLOCK)]
+
+        for song in song_score:
+            score = song_score[song]/len(self.fingerprints)
+            for i in range(1, self.MAX_NUM_BLOCK+1):
+                if score < ((1/self.MAX_NUM_BLOCK) * i):
+                    blocks[i].append(song)
+        
+        return blocks
+
+    def search_in_songs(self, songs: list):
+        pass
+
+    @staticmethod
+    def hamming_distance(match_fingerprint: str, query_fingerprint: str):
+        """
+        :param match_fingerprint:
+        :param query_fingerprint:
+        :return: return hamming distance of two fingerprint
+        """
+        match_binary = NumBase64.decode_to_binary(match_fingerprint)
+        query_binary = NumBase64.decode_to_binary(query_fingerprint)
+        xor = bin(int(match_binary, 2) ^ int(query_binary, 2)).lstrip("0b")
+        distance = 0
+        for each in xor:
+            if each == "1":
+                distance += 1
+        return distance/len(query_binary)
+
+    def retrieve(self, sample_or_dir):
+        pass
+
+
