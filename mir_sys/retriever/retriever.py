@@ -65,7 +65,7 @@ class Retriever:
         set score for songs based on repeat in fingerprint list and then block them
         :return: block list
         """
-        songs = [song for fingerprint in self.query_hash_table
+        songs = [song for fingerprint in self.fingerprints
                  for song in self.query_hash_table[fingerprint]['songs']]
         song_score = dict(Counter(songs))
 
@@ -77,8 +77,31 @@ class Retriever:
             for i in range(1, self.MAX_NUM_BLOCK+1):
                 if score < ((1/self.MAX_NUM_BLOCK) * i):
                     blocks[i].append(song)
-        
+
         return blocks
+
+    def make_regex_dict(self) -> dict:
+        """
+        :return:
+        """
+        fingerprint_regex = dict()
+        for fingerprint in self.query_hash_table:
+            regex = r"".join([each + "|" for each in self.query_hash_table[fingerprint]]).rstrip("|")
+            fingerprint_regex[fingerprint] = r"({}|{})".format(fingerprint, regex)
+        return fingerprint_regex
+
+    def mack_regex(self) -> str:
+        """
+        :return: regex
+        """
+        fingerprint_regex_dict = self.make_regex_dict()
+        length = len(self.fingerprints)
+        regex = r"(.{4})*("
+        for i in range(length-1):
+            regex += r"((.{}){}{}(.{}){}))|".format(4, i, fingerprint_regex_dict[self.fingerprints[i]], 4,
+                                                    length-(i+1))
+        regex += r"((.{}){}{}(.{}){})))".format(4, length-1, fingerprint_regex_dict[self.fingerprints[-1]], 4, 0)
+        return regex
 
     def search_in_songs(self, songs: list):
         pass
