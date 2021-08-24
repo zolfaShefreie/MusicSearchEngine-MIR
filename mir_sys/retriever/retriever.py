@@ -90,17 +90,39 @@ class Retriever:
             fingerprint_regex[fingerprint] = r"({}|{})".format(fingerprint, regex)
         return fingerprint_regex
 
+    def make_positions_fingerprint(self) -> dict:
+        """
+        work with positions to make dict for make range fingerprint before and after
+        :return:
+        """
+        positions = dict()
+        length = len(self.fingerprints)
+        reversed_fingerprints = list(reversed(self.fingerprints))
+        for each in set(self.fingerprints):
+            first_index, last_index = self.fingerprints.index(each), length - reversed_fingerprints.index(each) -1
+            if first_index == last_index:
+                positions[each] = (first_index, length-(first_index+1))
+            else:
+                positions[each] = (first_index, last_index, length-(first_index+1), length-(last_index+1))
+        return positions
+
     def mack_regex(self) -> str:
         """
         :return: regex
         """
         fingerprint_regex_dict = self.make_regex_dict()
-        length = len(self.fingerprints)
+        range_dict = self.make_positions_fingerprint()
+
         regex = r"(.{4})*("
-        for i in range(length-1):
-            regex += r"((.{}){}{}(.{}){}))|".format(4, i, fingerprint_regex_dict[self.fingerprints[i]], 4,
-                                                    length-(i+1))
-        regex += r"((.{}){}{}(.{}){})))".format(4, length-1, fingerprint_regex_dict[self.fingerprints[-1]], 4, 0)
+        for each in range_dict:
+            if len(range_dict[each]) == 2:
+                regex += r"((.{}){}{}(.{}){}))|".format(str({4}), range_dict[0], fingerprint_regex_dict[each], str({4}),
+                                                        range_dict[1])
+            elif len(range_dict[each]) == 4:
+                regex += r"((.{}){}{}(.{}){}))|" .format(str({4}), fingerprint_regex_dict[each],
+                                                         "{" + "{}, {}".format(range_dict[0], range_dict[1]) + "}",
+                                                         str({4}),
+                                                         "{" + "{}, {}".format(range_dict[2], range_dict[3]) + "}")
         return regex
 
     def search_in_songs(self, songs: list):
