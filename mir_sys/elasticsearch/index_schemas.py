@@ -24,11 +24,38 @@ FINGERPRINT_INDEX = {
 
 SONG_INDEX = {
     "schema": {
+        "settings": {
+            "analysis": {
+                "analyzer": {
+                    "fingerprint_analyzer": {
+                        "tokenizer": "fingerprint_tokenizer",
+                        "filter": ["synonym" ]
+                    }
+                },
+                "filter": {
+                    "synonym": {
+                        "type": "synonym",
+                        "lenient": True,
+                        "synonyms_path": "./fingerprint_24bit/synonym.txt"
+                    }
+                },
+                "tokenizer": {
+                    "fingerprint_tokenizer": {
+                        "type": "simple_pattern",
+                        "pattern": ".{4}"
+                    }
+                }
+            }
+        },
         "mappings": {
             "properties": {
                 "artist": {"type": "keyword"},
                 "effort": {"type": "integer"},
-                "fingerprint": {"type": "wildcard"}
+                "fingerprint": {
+                    "type": "text",
+                    "search_analyzer": "fingerprint_analyzer",
+                    "analyzer": "fingerprint_analyzer"
+                }
             }
         }
     },
