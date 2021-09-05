@@ -1,5 +1,8 @@
 import ast
 import os
+import itertools
+
+from mir_sys.utils.custom_base64 import NumBase64
 
 
 class CDict:
@@ -55,6 +58,52 @@ class CDict:
 
     def values(self):
         return self.__dict_struct.values()
+
+
+class FingerprintSim:
+    MAX_BIT = 24
+    CHANGE_INDEX_LIST = [x for x in itertools.combinations(range(24), 1)]
+
+    @classmethod
+    def create_rel_fingerprints(cls, fingerprint: str) -> list:
+        """
+        create rel_fingerprints with maximum 1 hamming_distance for a fingerprint
+        :param fingerprint:
+        :return: a list of rel_fingerprints
+        """
+        rel_fingerprints = set()
+        binary_fingerprint = NumBase64.decode_to_binary(fingerprint)
+        for index in cls.CHANGE_INDEX_LIST:
+            new = "".join([str(0 ** int(binary_fingerprint[i])) if i in index else binary_fingerprint[i]
+                           for i in range(len(binary_fingerprint))])
+
+            rel_fingerprints.add(NumBase64.encode_binary_to_base64(new))
+        return list(rel_fingerprints) + [fingerprint]
+
+    @classmethod
+    def create_file(cls, path="./synonyms.txt"):
+        """
+        this function create synonyms file like elastic synonyms style
+        :param path: path of the file that will be saved
+        :return:
+        """
+        file = open(path, 'a')
+        file_content = str()
+        conditions = [(2 ** 14) * i for i in range((2 ** 10) + 1)]
+        for num in range(2 ** cls.MAX_BIT):
+            bin_num = bin(num).lstrip("0b").zfill(cls.MAX_BIT)
+            encode_num = NumBase64.encode_binary_to_base64(bin_num)
+            file_content += f"{encode_num}=>"
+            rels = ",".join(cls.create_rel_fingerprints(encode_num)).rstrip(",")
+            file_content += f"{rels}\n"
+            if num in conditions:
+                file.write(file_content)
+                file_content = str()
+
+        if file_content:
+            file.write(file_content)
+            file_content = str()
+        file.close()
 
 
 if __name__ == '__main__':
