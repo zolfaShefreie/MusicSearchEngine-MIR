@@ -18,19 +18,20 @@ def binary_activation(x):
 
 
 get_custom_objects().update({'binary_activation': Activation(binary_activation)})
-FRAME_SEC_INDEXES = [librosa.time_to_frames(i, 16000, n_fft=int(16000 * 0.2), hop_length=int(16000 * 0.1))
-                     for i in range(1, 10000, 1)]
+FRAME_SEC_INDEXES = [librosa.time_to_frames(i/4, 16000, n_fft=int(16000 * 0.02), hop_length=int(16000 * 0.01))
+                     for i in range(1, 10000*4)]
 MAX_FRAME_NUM = max([FRAME_SEC_INDEXES[i + 1] - FRAME_SEC_INDEXES[i] for i in range(len(FRAME_SEC_INDEXES) - 1)])
 
 
 class FingerprintGenerator:
     SAMPLE_RATE = 16000
-    HOP_LENGTH = int(SAMPLE_RATE * 0.1)
-    N_FFT = int(SAMPLE_RATE * 0.2)
-    DIFF = 1
+    HOP_LENGTH = int(SAMPLE_RATE * 0.01)
+    N_FFT = int(SAMPLE_RATE * 0.02)
+    DIFF = 4
     ALLOW_DURATION = 10000
-    SPECIAL_VALUE = -10
+    SPECIAL_VALUE = -0.1
     FRAME_SEC_INDEXES = FRAME_SEC_INDEXES
+    MAX_FRAME_NUM = MAX_FRAME_NUM
 
     MAX_FRAME_NUM = MAX_FRAME_NUM
 
@@ -63,10 +64,8 @@ class FingerprintGenerator:
         :param samples:
         :return: chroma feature matrix
         """
-        return librosa.feature.chroma_stft(samples,
-                                           sr=cls.SAMPLE_RATE,
-                                           n_fft=cls.N_FFT,
-                                           hop_length=cls.HOP_LENGTH).transpose()
+        return librosa.feature.chroma_cens(samples, sr=cls.SAMPLE_RATE,
+                                           hop_length=cls.HOP_LENGTH, n_octaves=6).transpose()
 
     @classmethod
     def add_padding(cls, feature: np.array) -> np.array:
