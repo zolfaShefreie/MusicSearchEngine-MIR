@@ -5,6 +5,21 @@ import itertools
 from mir_sys.utils.custom_base64 import NumBase64
 
 
+def hamming_distance(u: iter, v: iter) -> float:
+    """
+    calculate the hamming distance
+        diffs/len
+    :param u: iter obj
+    :param v: iter obj
+    :return: hamming distance
+    """
+    score = 0
+    for i in range(len(u)):
+        if u[i] != v[i]:
+            score += 1
+    return score/len(u)
+
+
 class CDict:
     MAX_CHANGES = 20000
 
