@@ -1,5 +1,5 @@
 from collections import Counter
-import itertools
+import re
 
 from mir_sys.utils.generate_fingerprint import FingerprintGenerator
 from mir_sys.utils.custom_base64 import NumBase64
@@ -12,6 +12,7 @@ MAX_BIT = 24
 class Retriever:
 
     MAX_NUM_BLOCK = 5
+    THRESHOLD = 0.1
 
     def __init__(self):
         self.fingerprints = None
@@ -101,6 +102,15 @@ class Retriever:
             positions.append((i, length-i-1))
         return positions
 
+    def get_min_position(self) -> dict:
+        """
+        find the minimum offset for search in elastic
+        """
+        positions = dict()
+        for each in self.query_hash_table:
+            positions.update({each: self.fingerprints.index(each)})
+        return positions
+
     def mack_regex(self) -> str:
         """
         :return: regex
@@ -110,19 +120,60 @@ class Retriever:
 
         regex = r"(?=((.{4})*("
         for i in range(len(self.fingerprints)):
-            regex += r"(.{}){}{}(.{}){}|".format(str({4}), str({range_list[i][0]}),
-                                                 fingerprint_regex_dict[self.fingerprints[i]],
-                                                 str({4}), str({range_list[i][1]}))
+            regex += r".{}{}.{}|".format(str({range_list[i][0] * 4}),
+                                         fingerprint_regex_dict[self.fingerprints[i]],
+                                         str({range_list[i][1] * 4}))
         regex.rstrip("|")
         regex += r")(.{4})*))"
         return regex
 
     @classmethod
     def find_matches_in_song(cls, song_fingerprint: str, regex: str) -> list:
-        pass
+        """
+        find all matches in a song_fingerprint
+        :param song_fingerprint:
+        :param regex:
+        :return: a list of matches
+        """
+        results = re.findall(regex, song_fingerprint)
+        return [each[2] for each in results]
 
-    def search_in_songs(self, songs: list):
-        pass
+    def second_scorer(self, songs: list):
+        """
+        score songs with their positions
+        :param songs: ids
+        :return: sorted songs
+        """
+        min_pos = self.get_min_position()
+        return Queries.score_songs(songs, min_pos)
+
+    def search_in_block(self, songs: list):
+        """
+        management for search in block
+        :param songs: ids
+        :return: if find match return song id else return None
+        """
+        sorted_songs = self.second_scorer(songs)
+        regex = self.mack_regex()
+        fingerprint = "".join(self.fingerprints)
+        for song in sorted_songs:
+            if self.is_match(song["_source"]["fingerprint"], regex, fingerprint):
+                return song["_id"]
+        return None
+
+    @classmethod
+    def is_match(cls, song_fingerprint: str, regex: str, fingerprint: str) -> bool:
+        """
+        :param song_fingerprint:
+        :param regex:
+        :param fingerprint:
+        :return: is match or not
+        """
+        results = cls.find_matches_in_song(song_fingerprint, regex)
+        for each in results:
+            if cls.hamming_distance(each, fingerprint) < cls.THRESHOLD:
+                return True
+        return False
 
     @staticmethod
     def hamming_distance(match_fingerprint: str, query_fingerprint: str):

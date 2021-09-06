@@ -183,3 +183,46 @@ class Queries:
             }
         }
         cls.ES_CONN.update_by_query(index="fingerprints", body=body)
+
+    @classmethod
+    def score_songs(cls, song_ids: list, positions: dict) -> list:
+        """
+        search in songes based on positions and score them
+        :param song_ids:
+        :param positions:
+        :return:
+        """
+        shoulds = [
+            {
+                "intervals": {
+                    "message": {
+                        "match": {
+                            "query": fingerprint,
+                            "filter": {
+                                "script": {
+                                    "source": "interval.start < {} ".format(positions[fingerprint])
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for fingerprint in positions
+        ]
+
+        body = {
+            "size": len(song_ids),
+            "_source": 'fingerprint',
+            "query": {
+                "bool": {
+                    "must": {
+                        "ids": {
+                            "values": song_ids
+                        }
+                    },
+                    "should": shoulds
+                }
+            }
+        }
+        results = cls.ES_CONN.search(index="songs", body=body)['hits']['hits']
+        return results
