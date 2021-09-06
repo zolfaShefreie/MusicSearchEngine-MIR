@@ -9,15 +9,23 @@ MIN_DURATION_SEC = 5
 
 
 class RetrieveReqFileSerializer(serializers.Serializer):
+    MAX_DURATION_SAMPLES = librosa.time_to_samples(MAX_DURATION_SEC, sr=16000)
+    MIN_DURATION_SAMPLES = librosa.time_to_samples(MIN_DURATION_SEC, sr=16000)
     file_query = serializers.FileField(required=True)
 
     def validate_file_query(self, value):
         if value.content_type != "audio/wav":
             raise serializers.ValidationError("invalid type")
-        return value
+        samples = librosa.load(value, 16000)
+        if len(samples) > self.MAX_DURATION_SAMPLES:
+            raise serializers.ValidationError("size of file is greater than valid size")
+        elif len(samples) < self.MIN_DURATION_SAMPLES:
+            raise serializers.ValidationError("size of file is lower than valid size")
+        return samples
 
     def save(self, **kwargs):
-        Retriever().retrieve("")
+        self.result = Retriever().retrieve(self.validated_data['file_query'])
+        return self.result
 
 
 class RetrieveReqSampleSerializer(serializers.Serializer):
