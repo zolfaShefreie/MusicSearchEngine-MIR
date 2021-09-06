@@ -3,7 +3,7 @@ import re
 
 from mir_sys.utils.generate_fingerprint import FingerprintGenerator
 from mir_sys.utils.custom_base64 import NumBase64
-from mir_sys.utils.util_classes import FingerprintSim, hamming_distance
+from mir_sys.utils.util_classes import FingerprintSim
 from mir_sys.elasticsearch.queries import Queries
 
 MAX_BIT = 24
@@ -63,33 +63,18 @@ class Retriever:
                 if score < ((1/self.MAX_NUM_BLOCK) * i):
                     blocks[i].append(song)
 
-        return blocks
+        return blocks.reverse()
 
     def make_regex_dict(self) -> dict:
         """
-        :return:
+        make a dict with fingerprint and its regex
+        :return: regex dict
         """
         fingerprint_regex = dict()
         for fingerprint in self.query_hash_table:
             regex = r"".join([each + "|" for each in self.query_hash_table[fingerprint]]).rstrip("|")
             fingerprint_regex[fingerprint] = r"({}|{})".format(fingerprint, regex)
         return fingerprint_regex
-
-    # def make_positions_fingerprint(self) -> dict:
-    #     """
-    #     work with positions to make dict for make range fingerprint before and after
-    #     :return:
-    #     """
-    #     positions = dict()
-    #     length = len(self.fingerprints)
-    #     reversed_fingerprints = list(reversed(self.fingerprints))
-    #     for each in set(self.fingerprints):
-    #         first_index, last_index = self.fingerprints.index(each), length - reversed_fingerprints.index(each) -1
-    #         if first_index == last_index:
-    #             positions[each] = (first_index, length-(first_index+1))
-    #         else:
-    #             positions[each] = (first_index, last_index, length-(first_index+1), length-(last_index+1))
-    #     return positions
 
     def make_positions_fingerprint(self) -> list:
         """
@@ -192,6 +177,16 @@ class Retriever:
         return distance/len(query_binary)
 
     def retrieve(self, sample_or_dir):
-        pass
-
-
+        """
+        retrieve management
+        :param sample_or_dir:
+        :return:
+        """
+        self.get_fingerprint(sample_or_dir)
+        self.fill_hash_table()
+        blocks = self.make_block_search()
+        for block in blocks:
+            song = self.search_in_block(songs=block)
+            if song is not None:
+                return song
+        return None
