@@ -44,7 +44,7 @@ class FingerprintGenerator:
     MODEL.load_weights(MODEL_CONFIGS['WEIGHTS_PATH'])
 
     @classmethod
-    def get_samples_of_audio(cls, file_path: str, remove_file=False) -> np.array:
+    def get_samples_of_audio(cls, file_path: str, remove_file=True) -> np.array:
         """
         get samples from audio file(signals)
         :param file_path: the path of audio file

@@ -133,10 +133,12 @@ class Queries:
                                     "gte": 1
                                 }
                             }
-                        },
+                        }
+                    ],
+                    "must_not": [
                         {
                             "regexp": {
-                                "fingerprint": ".{0}"
+                                "fingerprint": ".{4}"
                             }
                         }
                     ]
@@ -155,16 +157,17 @@ class Queries:
         :return:
         """
         body = {
-            "script": {
-                "script": "ctx._source.effort += 1",
-                "lang": "painless"
-            },
             "query": {
                 "ids": {
                     "values": song_ids
                 }
+            },
+            "script": {
+                "source": "ctx._source.effort += 1",
+                "lang": "painless"
             }
         }
+        print(song_ids)
         cls.ES_CONN.update_by_query(index="songs", body=body, request_timeout=timeout)
 
     @classmethod
