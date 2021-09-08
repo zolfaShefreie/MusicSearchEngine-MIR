@@ -10,5 +10,5 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         el = Elasticsearch()
         for each in SCHEMA:
-            el.indices.create(index=each['index_name'], body=each['schema'], ignore=[400, 404])
+            el.indices.create(index=each['index_name'], body=each['schema'], ignore=[400, 404], request_timeout=7200)
         print(f"indices: {el.indices.get_alias('*')}")
