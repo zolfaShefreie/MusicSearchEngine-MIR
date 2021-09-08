@@ -207,7 +207,7 @@ class Queries:
         shoulds = [
             {
                 "intervals": {
-                    "message": {
+                    "fingerprint": {
                         "match": {
                             "query": fingerprint,
                             "filter": {

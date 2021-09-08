@@ -12,7 +12,7 @@ MAX_BIT = 24
 class Retriever:
 
     MAX_NUM_BLOCK = 5
-    THRESHOLD = 0.1
+    THRESHOLD = 0.06
 
     def __init__(self):
         self.fingerprints = None
@@ -32,7 +32,7 @@ class Retriever:
         results = Queries.search_ids(fingerprints_query, "fingerprints")
         songs = set()
         for each in results:
-            songs.update(set(each['songs']))
+            songs.update(set(each['_source']['songs']))
         return list(songs)
 
     def fill_hash_table(self):
@@ -61,9 +61,9 @@ class Retriever:
             score = song_score[song]/len(self.fingerprints)
             for i in range(1, self.MAX_NUM_BLOCK+1):
                 if score < ((1/self.MAX_NUM_BLOCK) * i):
-                    blocks[i].append(song)
-
-        return blocks.reverse()
+                    blocks[i-1].append(song)
+        blocks.reverse()
+        return blocks
 
     def make_regex_dict(self) -> dict:
         """
@@ -72,7 +72,7 @@ class Retriever:
         """
         fingerprint_regex = dict()
         for fingerprint in self.query_hash_table:
-            regex = r"".join([each + "|" for each in self.query_hash_table[fingerprint]]).rstrip("|")
+            regex = r"".join([each + "|" for each in self.query_hash_table[fingerprint]['rels']]).rstrip("|")
             fingerprint_regex[fingerprint] = r"({}|{})".format(fingerprint, regex)
         return fingerprint_regex
 
@@ -108,12 +108,12 @@ class Retriever:
             regex += r".{}{}.{}|".format(str({range_list[i][0] * 4}),
                                          fingerprint_regex_dict[self.fingerprints[i]],
                                          str({range_list[i][1] * 4}))
-        regex.rstrip("|")
+        regex = regex.rstrip("|")
         regex += r")(.{4})*))"
         return regex
 
     @classmethod
-    def find_matches_in_song(cls, song_fingerprint: str, regex: str) -> list:
+    def find_matches_in_song(cls, song_fingerprint: str, regex: str) -> set:
         """
         find all matches in a song_fingerprint
         :param song_fingerprint:
@@ -121,7 +121,7 @@ class Retriever:
         :return: a list of matches
         """
         results = re.findall(regex, song_fingerprint)
-        return [each[2] for each in results]
+        return set([each[2] for each in results])
 
     def second_scorer(self, songs: list):
         """
@@ -130,7 +130,8 @@ class Retriever:
         :return: sorted songs
         """
         min_pos = self.get_min_position()
-        return Queries.score_songs(songs, min_pos)
+        result = Queries.score_songs(songs, min_pos)
+        return result
 
     def search_in_block(self, songs: list):
         """
@@ -174,6 +175,7 @@ class Retriever:
         for each in xor:
             if each == "1":
                 distance += 1
+        print(distance/len(query_binary))
         return distance/len(query_binary)
 
     def retrieve(self, sample_or_dir):
