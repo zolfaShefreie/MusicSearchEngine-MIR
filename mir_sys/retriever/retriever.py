@@ -103,13 +103,13 @@ class Retriever:
         fingerprint_regex_dict = self.make_regex_dict()
         range_list = self.make_positions_fingerprint()
 
-        regex = r"(?=((.{4})*("
+        regex = r"((.{4})*("
         for i in range(len(self.fingerprints)):
             regex += r".{}{}.{}|".format(str({range_list[i][0] * 4}),
                                          fingerprint_regex_dict[self.fingerprints[i]],
                                          str({range_list[i][1] * 4}))
         regex = regex.rstrip("|")
-        regex += r")(.{4})*))"
+        regex += r")(.{4})*)"
         return regex
 
     @classmethod
