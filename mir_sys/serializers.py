@@ -43,7 +43,6 @@ class RetrieveReqFileSerializer(serializers.Serializer):
         return None
 
     def to_representation(self, instance):
-        print(instance)
         if instance:
             obj = {
                 "author": instance['author'],
