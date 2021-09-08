@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from mir_sys.views import SearchFileView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("search/", SearchFileView.as_view()),
 ]
