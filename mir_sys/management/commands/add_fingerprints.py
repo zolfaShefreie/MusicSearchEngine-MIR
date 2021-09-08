@@ -31,4 +31,4 @@ class Command(BaseCommand):
                     }
                 }
             )
-        Queries.create_multi_objs(objs, "fingerprints", 60)
+        Queries.create_multi_objs(objs, "fingerprints", 180)
