@@ -4,11 +4,11 @@ import numpy as np
 import librosa
 
 from mir_sys.retriever.retriever import Retriever
+from mir_sys.utils.audio_downloader import Downloader
 
 MAX_DURATION_SEC = 15
 MIN_DURATION_SEC = 5
 YT = YTMusic()
-RETRIEVER = Retriever()
 
 
 class RetrieveReqFileSerializer(serializers.Serializer):
@@ -20,7 +20,7 @@ class RetrieveReqFileSerializer(serializers.Serializer):
         # if value.content_type != "audio/wav":
         #     raise serializers.ValidationError("invalid type")
         try:
-            samples, sr = librosa.load("newSong.wav", sr=16000)
+            samples, sr = librosa.load(value, sr=16000, res_type="kaiser_fast")
         except :
             raise serializers.ValidationError("content of file is not valid")
         print(samples.shape)
@@ -31,11 +31,12 @@ class RetrieveReqFileSerializer(serializers.Serializer):
         return samples
 
     def save(self, **kwargs):
-        result = RETRIEVER.retrieve(self.validated_data['file_query'])
+        result = Retriever().retrieve(self.validated_data['file_query'])
         if result is not None:
             for i in range(5):
                 try:
-                    self.instance = YT.get_song("7c_VcZzS6LE").get('videoDetails', None)
+                    self.instance = YT.get_song(result).get('videoDetails', None)
+                    self.instance['url'] = Downloader.get_youtube_urls([result])[0]
                     return self.instance
                 except Exception as e:
                     print(str(e))
@@ -49,7 +50,7 @@ class RetrieveReqFileSerializer(serializers.Serializer):
                 "averageRating": instance['averageRating'],
                 "title": instance['title'],
                 "viewCount": instance['viewCount'],
-                "thumbnail": instance['thumbnail']['thumbnails'][1]['url']
+                "url": instance['url']
             }
             return RetrieveResponseSerializer(instance=obj).data
         return {}
@@ -81,4 +82,4 @@ class RetrieveResponseSerializer(serializers.Serializer):
     author = serializers.CharField()
     averageRating = serializers.FloatField()
     viewCount = serializers.CharField()
-    thumbnail = serializers.URLField()
+    url = serializers.URLField()

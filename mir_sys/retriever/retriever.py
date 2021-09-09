@@ -12,7 +12,7 @@ MAX_BIT = 24
 class Retriever:
 
     MAX_NUM_BLOCK = 5
-    THRESHOLD = 0.06
+    THRESHOLD = 0.4
 
     def __init__(self):
         self.fingerprints = None
@@ -109,19 +109,36 @@ class Retriever:
                                          fingerprint_regex_dict[self.fingerprints[i]],
                                          str({range_list[i][1] * 4}))
         regex = regex.rstrip("|")
-        regex += r")(.{4})*)"
+        regex += r"))"
         return regex
 
+    def mack_regex_list(self):
+        """
+        :return:
+        """
+        fingerprint_regex_dict = self.make_regex_dict()
+        range_list = self.make_positions_fingerprint()
+        regex_list = list()
+        regex = r"((.{4})*("
+        for i in range(len(self.fingerprints)):
+            regex_list.append(regex + r".{}{}.{}|".format(str({range_list[i][0] * 4}),
+                                                          fingerprint_regex_dict[self.fingerprints[i]],
+                                                          str({range_list[i][1] * 4}).rstrip("|") + r"))"))
+        return regex_list
+
     @classmethod
-    def find_matches_in_song(cls, song_fingerprint: str, regex: str) -> set:
+    def find_matches_in_song(cls, song_fingerprint: str, regex_list: list) -> set:
         """
         find all matches in a song_fingerprint
         :param song_fingerprint:
-        :param regex:
+        :param regex_list:
         :return: a list of matches
         """
-        results = re.findall(regex, song_fingerprint)
-        return set([each[2] for each in results])
+        # results = re.findall(regex, song_fingerprint)
+        results = list()
+        for regex in regex_list:
+            results += re.findall(regex, song_fingerprint)
+        return set([each[2] for each in results if each[2]])
 
     def second_scorer(self, songs: list):
         """
@@ -140,22 +157,22 @@ class Retriever:
         :return: if find match return song id else return None
         """
         sorted_songs = self.second_scorer(songs)
-        regex = self.mack_regex()
+        regex_list = self.mack_regex_list()
         fingerprint = "".join(self.fingerprints)
         for song in sorted_songs:
-            if self.is_match(song["_source"]["fingerprint"], regex, fingerprint):
+            if self.is_match(song["_source"]["fingerprint"], regex_list, fingerprint):
                 return song["_id"]
         return None
 
     @classmethod
-    def is_match(cls, song_fingerprint: str, regex: str, fingerprint: str) -> bool:
+    def is_match(cls, song_fingerprint: str, regex_list: list, fingerprint: str) -> bool:
         """
         :param song_fingerprint:
-        :param regex:
+        :param regex_list:
         :param fingerprint:
         :return: is match or not
         """
-        results = cls.find_matches_in_song(song_fingerprint, regex)
+        results = cls.find_matches_in_song(song_fingerprint, regex_list)
         for each in results:
             if cls.hamming_distance(each, fingerprint) < cls.THRESHOLD:
                 return True
