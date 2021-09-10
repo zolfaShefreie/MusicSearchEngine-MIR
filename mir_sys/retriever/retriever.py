@@ -1,5 +1,6 @@
 from collections import Counter
 import re
+from multiprocessing import Pool
 
 from mir_sys.utils.generate_fingerprint import FingerprintGenerator
 from mir_sys.utils.custom_base64 import NumBase64
@@ -12,7 +13,8 @@ MAX_BIT = 24
 class Retriever:
 
     MAX_NUM_BLOCK = 5
-    THRESHOLD = 0.06
+    THRESHOLD = 0.08
+    MAX_PROCESS = 5
 
     def __init__(self):
         self.fingerprints = None
@@ -147,7 +149,7 @@ class Retriever:
         :return: sorted songs
         """
         min_pos = self.get_min_position()
-        result = Queries.score_songs(songs, min_pos)
+        result = Queries.score_songs(songs, min_pos, 100)
         return result
 
     def search_in_block(self, songs: list):
@@ -157,11 +159,26 @@ class Retriever:
         :return: if find match return song id else return None
         """
         sorted_songs = self.second_scorer(songs)
+        # regex_list = [self.mack_regex(), ]
         regex_list = self.mack_regex_list()
         fingerprint = "".join(self.fingerprints)
-        for song in sorted_songs:
-            if self.is_match(song["_source"]["fingerprint"], regex_list, fingerprint):
-                return song["_id"]
+        pool = Pool(self.MAX_PROCESS)
+        arg_list = [sorted_songs[i * self.MAX_PROCESS: (i + 1) * self.MAX_PROCESS]
+                    for i in range(int(len(sorted_songs)/self.MAX_PROCESS)+1)]
+        for each in arg_list:
+            args = [(song["_source"]["fingerprint"], regex_list, fingerprint) for song in each]
+            results = pool.starmap(self.is_match, args)
+            for i in range(len(results)):
+                if results[i]:
+                    pool.close()
+                    pool.join()
+                    return each[i]["_id"]
+        # for song in sorted_songs:
+        #     print(song["_id"])
+        #     if self.is_match(song["_source"]["fingerprint"], regex_list, fingerprint):
+        #         return song["_id"]
+        pool.close()
+        pool.join()
         return None
 
     @classmethod
@@ -206,6 +223,7 @@ class Retriever:
         blocks = self.make_block_search()
         for block in blocks:
             song = self.search_in_block(songs=block)
+            print(song)
             if song is not None:
                 return song
         return None
