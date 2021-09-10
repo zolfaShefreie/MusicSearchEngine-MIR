@@ -13,8 +13,8 @@ MAX_BIT = 24
 class Retriever:
 
     MAX_NUM_BLOCK = 5
-    THRESHOLD = 0.07
-    MAX_PROCESS = 3
+    THRESHOLD = 0.08
+    MAX_PROCESS = 5
 
     def __init__(self):
         self.fingerprints = None
